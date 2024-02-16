@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const helmet = require("helmet");
 const logger = require("./app/utils/logger");
-const config = require("./app/config/db.config");
+const config = require("./app/utils/config");
 const { requestLogger } = require("./app/utils/middleware");
 const app = express();
 
@@ -20,6 +20,9 @@ app.use(function (reg, res, next) {
   logger.info("Time: %d", Date.now());
   next();
 });
+
+require("./app/routes/events.route")(app, express);
+require("./app/routes/weatherApi.route")(app, express);
 
 const db = require("./app/models");
 const { TIME } = require("sequelize");

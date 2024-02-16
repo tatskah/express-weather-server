@@ -1,16 +1,8 @@
 const { DataTypes, Model } = require("sequelize");
+const { DayTimes } = require("./clsDayTimes.model");
 
-module.exports = (sequelize, Sequelize) => {
-  class Events extends Model {}
-
-  // temp_evening integer,
-  // temp_middle integer,
-  // temp_morning integer,
-  // wtype_evening integer,
-  // wtype_middle integer,
-  // wtype_morning integer,
-  // daytime_id bigint,
-  // weathertype_id bigint,
+module.exports = (sequelize) => {
+  class Events extends Model { }
   Events.init(
     {
       id: {
@@ -46,7 +38,10 @@ module.exports = (sequelize, Sequelize) => {
       daytime_id: {
         type: DataTypes.INTEGER,
         field: "daytime_id",
-        onDelete: "CASCADE",
+      },
+      weathertype_id: {
+        type: DataTypes.INTEGER,
+        field: "weathertype_id",
       },
       created_at: {
         type: "TIMESTAMP",
