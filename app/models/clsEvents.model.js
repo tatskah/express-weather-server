@@ -1,5 +1,4 @@
 const { DataTypes, Model } = require("sequelize");
-const { DayTimes } = require("./clsDayTimes.model");
 
 module.exports = (sequelize) => {
   class Events extends Model { }
