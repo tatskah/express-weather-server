@@ -6,14 +6,6 @@ const Op = db.Sequelize.Op;
 
 module.exports.getEvents = async (req, res) => {
     const criteria = { limit: 10 };
-    // let wTypes = await WeatherTypes.findAll({
-    //     order: [["id", "ASC"]]
-    // })
-    //     .then((data) => {
-    //         return JSON.stringify(data);
-    //     }).catch((err) => {
-    //         console.log(err);
-    //     });
     const weathertypes = await db.sequelize.query('SELECT * FROM weathertypes', { raw: true, type: db.Sequelize.QueryTypes.SELECT });
 
     Events.findAll(

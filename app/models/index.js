@@ -21,7 +21,6 @@ db.Sequelize = Sequelize;
 db.Events = require("./clsEvents.model")(sequelize);
 db.DayTimes = require("./clsDayTimes.model")(sequelize);
 db.WeatherTypes = require("./clsWeatherTypes.model")(sequelize);
+db.Settings = require("./clsSettings.model")(sequelize);
 
-// db.Events.hasMany(db.DayTimes, { foreignKey: "id" });
-// db.DayTimes.belongsTo(db.Events, { foreignKey: "id" });
 module.exports = db;

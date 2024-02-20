@@ -23,6 +23,7 @@ app.use(function (reg, res, next) {
 
 require("./app/routes/events.route")(app, express);
 require("./app/routes/weatherApi.route")(app, express);
+require("./app/routes/settings.route")(app, express);
 
 const db = require("./app/models");
 const { TIME } = require("sequelize");
