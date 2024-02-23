@@ -4,7 +4,6 @@ const logger = require("../utils/logger");
 
 module.exports.getWeatherData = async (reg, res) => {
     const url = reg.query.url;
-    logger.info("-----------");
     logger.info(reg.query.url);
 
     let data = "";
