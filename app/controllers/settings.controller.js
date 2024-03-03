@@ -40,7 +40,7 @@ module.exports.updateSetting = (req, res) => {
 
 module.exports.saveSettings = async (req, res) => {
     const data = req.body;
-    console.log(data);
+    let updSuccess = true;
 
     for (item of data) {
         const id = item.id
@@ -49,14 +49,17 @@ module.exports.saveSettings = async (req, res) => {
 
         if (id === undefined) {
             const result = await db.sequelize.query('SELECT MAX(id)+1 AS id FROM settings', { raw: true, type: db.Sequelize.QueryTypes.SELECT })
-            item.id = result[0].id;
-            console.log("MAX ID", result[0].id);
+            let maxId = result[0]['id'];
+            if (maxId === null) maxId = 1;
+            item.id = maxId;
+
             const setting = await Settings.create(item)
                 .then(data => {
-                    console.log(data);
+
                 })
                 .catch(err => {
                     console.log(err, "Failed to add setting");
+                    updSuccess = false;
                     // res.status(500).send({ message: err.message || "Failed to add setting" });
                 });
 
@@ -66,21 +69,18 @@ module.exports.saveSettings = async (req, res) => {
             })
                 .then(num => {
                     if (num == 1) {
-                        console.log("UPDATED");
+
                         //res.send({ message: "Settings updated successfully" });
                     } else {
-                        console.log("FAILED");
+                        updSuccess = false;
                         //res.send({ message: `Setting update with id ${id} FAILED` })
                     }
                 })
                 .catch(err => {
-                    console.log(err, "FAILED ")
+                    updSuccess = false;
                     //res.status(500).send({ message: err.message || `ERROR in settings update with id ${id}` })
                 });
         }
-
-
-
         // Settings.findOrCreate({
         //     where: { name: name },
         //     defaults: item,
@@ -102,6 +102,12 @@ module.exports.saveSettings = async (req, res) => {
         //         console.log(error, "Failed setting find/update");
         //     })
     }
+    if (updSuccess) {
+        res.send("Settings data updated successfully");
+    } else {
+        res.status(501).send("Settings data update failed");
+    }
+
 }
 
 module.exports.deleteSetting = () => {
