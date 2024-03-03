@@ -19,6 +19,7 @@ db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
 db.Events = require("./clsEvents.model")(sequelize);
+db.EventsPhotos = require("./clsEventsPhotos.model")(sequelize);
 db.DayTimes = require("./clsDayTimes.model")(sequelize);
 db.WeatherTypes = require("./clsWeatherTypes.model")(sequelize);
 db.Settings = require("./clsSettings.model")(sequelize);

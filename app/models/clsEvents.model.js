@@ -42,6 +42,9 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         field: "weathertype_id",
       },
+      photoUri: {
+        type: DataTypes.STRING,
+      },
       created_at: {
         type: "TIMESTAMP",
         defaultValue: Date.NOW,

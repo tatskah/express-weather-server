@@ -3,10 +3,11 @@ module.exports = (app, express) => {
     const settings = require("../controllers/settings.controller");
 
     router.get("/", settings.getSettings);
-    router.get("/:id", settings.findById);
-    router.delete("/:id", settings.deleteSetting);
-    router.post("/", settings.addSetting);
-    router.post("/:id", settings.updateSetting);
+    router.post("/", settings.saveSettings);
+
+    // router.get("/:id", settings.findById);
+    // router.delete("/:id", settings.deleteSetting);
+    // router.post("/", settings.addSetting);
 
     app.use("/api/settings", router);
 };

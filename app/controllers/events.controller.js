@@ -1,8 +1,16 @@
 const db = require("../models");
 const Events = db.Events;
+const EventsPhotos = db.EventsPhotos;
 const DayTimes = db.DayTimes;
 const WeatherTypes = db.WeatherTypes;
 const Op = db.Sequelize.Op;
+
+const PhotoStatus =
+{
+    'ADDED': 1,
+    'REMOVED': 2,
+    'EXISTING': 3
+};
 
 module.exports.getEvents = async (req, res) => {
     const criteria = { limit: 10 };
@@ -10,11 +18,16 @@ module.exports.getEvents = async (req, res) => {
 
     Events.findAll(
         {
+            criteria,
             include: [{
                 model: DayTimes,
             }],
             include: [{
                 model: WeatherTypes,
+            }],
+            include: [{
+                association: 'EventsPhotos',
+                required: false,
             }],
             attributes: {
                 include: [
@@ -45,7 +58,12 @@ module.exports.findById = async (req, res) => {
 
     const weathertypes = await db.sequelize.query('SELECT * FROM weathertypes', { raw: true, type: db.Sequelize.QueryTypes.SELECT });
 
-    Events.findByPk(id)
+    Events.findByPk(id, {
+        include: [{
+            association: 'EventsPhotos',
+            required: false,
+        }],
+    })
         .then((data) => {
             if (data) {
                 const event = data.get();
@@ -54,7 +72,7 @@ module.exports.findById = async (req, res) => {
             } else {
                 res
                     // .status(404)
-                    .send([{ WeatherTypes: weathertypes, message: 222, msg: `Event not found with ${id}` }]);
+                    .send([{ WeatherTypes: weathertypes, message: 404, msg: `Event not found with ${id}` }]);
             }
         })
         .catch((err) => {
@@ -66,6 +84,7 @@ module.exports.findById = async (req, res) => {
 
 module.exports.addEvent = async (req, res) => {
     const data = req.body;
+    const event_photos = data.EventsPhotos;
 
     if (!data.add_date) {
         res
@@ -84,6 +103,21 @@ module.exports.addEvent = async (req, res) => {
             .catch(err => {
                 res.status(500).send({ message: err || "Weather event create failed" })
             });
+
+        for (photo of event_photos) {
+            const ret = await db.sequelize.query("SELECT (MAX(id)+1)AS id  FROM events_photos", { raw: true, type: db.Sequelize.QueryTypes.SELECT });
+            let maxId = ret[0]['id'];
+            if (maxId === null) maxId = 1;
+            photo.id = maxId;
+            photo.events_id = data.id;
+            const eventsPhoto = new EventsPhotos(photo);
+            if (eventsPhoto.status === PhotoStatus.ADDED) {
+                eventsPhoto.status = PhotoStatus.EXISTING;
+                await eventsPhoto.save();
+            }
+        }
+
+
     } catch (error) {
         res.status(500).send({ message: error | "Weather event create failed" })
 
@@ -91,14 +125,46 @@ module.exports.addEvent = async (req, res) => {
 
 };
 
-module.exports.updateEvent = (req, res) => {
+module.exports.updateEvent = async (req, res) => {
+    const id = req.params.id;
     const data = req.body;
+    const event_photos = data.EventsPhotos;
 
+    for (photo of event_photos) {
+        const ret = await db.sequelize.query("SELECT (MAX(id)+1)AS id  FROM events_photos", { raw: true, type: db.Sequelize.QueryTypes.SELECT });
+        let maxId = ret[0]['id'];
+        if (maxId === null) maxId = 1;
+        photo.id = maxId;
+        photo.events_id = id;
+        const eventsPhoto = new EventsPhotos(photo);
+        if (eventsPhoto.status === PhotoStatus.ADDED) {
+            eventsPhoto.status = PhotoStatus.EXISTING;
+            await eventsPhoto.save();
+        }
+    }
 
-
+    Events.update(data, {
+        where: { id: id }
+    })
+        .then(num => {
+            if (num == 1) {
+                res.send({
+                    message: "Event was updated successfully"
+                });
+            } else {
+                res.send({
+                    message: `Event update with id ${id} FAILED`
+                })
+            }
+        })
+        .catch(err => {
+            res.status(500).send({
+                message: err.message || `ERROR in event update with id ${id}`
+            })
+        });
 };
 
-module.exports.deleteEvent = (req, res) => {
+module.exports.deleteEvent = async (req, res) => {
     const id = req.params.id;
 
     if (!id) {
@@ -108,7 +174,9 @@ module.exports.deleteEvent = (req, res) => {
         return;
     }
 
-    Event.destroy({ where: { id: id } })
+    await EventsPhotos.destroy({ where: { events_id: id } })
+
+    Events.destroy({ where: { id: id } })
         .then(num => {
             if (num == 1) {
                 res.send({ message: "Weather item deleted" });
